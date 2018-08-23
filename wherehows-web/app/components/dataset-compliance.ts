@@ -37,7 +37,8 @@ import {
   editableTags,
   lowQualitySuggestionConfidenceThreshold,
   TagFilter,
-  tagSuggestionNeedsReview
+  tagSuggestionNeedsReview,
+  ComplianceEdit
 } from 'wherehows-web/constants';
 import { getTagsSuggestions } from 'wherehows-web/utils/datasets/compliance-suggestions';
 import { arrayFilter, arrayMap, compact, isListUnique, iterateArrayAsync } from 'wherehows-web/utils/array';
@@ -110,6 +111,21 @@ export default class DatasetCompliance extends Component {
   isCompliancePolicyAvailable: boolean = false;
   showAllDatasetMemberData: boolean;
   complianceInfo: undefined | IComplianceInfo;
+
+  /**
+   * The current edit state of the dataset compliance tab. If isEditing is true, then
+   * this state is used to determine what is actually being edited
+   * @type {ComplianceEdit}
+   */
+  editTarget: ComplianceEdit;
+
+  /**
+   * Flag determining whether or not we are in an editing state. Triggered by an action connected to the
+   * user pressing an edit button, set back to false by the cancellation button or successful save of the
+   * edit
+   * @type {boolean}
+   */
+  isEditing: boolean = false;
 
   /**
    * Lists the compliance entities that are entered via the advanced editing interface
@@ -314,16 +330,6 @@ export default class DatasetCompliance extends Component {
     })[fieldReviewOption];
 
     return changeSetReviewCount ? hint : '';
-  });
-
-  /**
-   * Flag indicating that the component is in edit mode
-   * @type {ComputedProperty<boolean>}
-   * @memberof DatasetCompliance
-   */
-  isEditing = computed('editStepIndex', 'complianceInfo.fromUpstream', function(this: DatasetCompliance): boolean {
-    // initialStepIndex is less than the currently set step index
-    return get(this, 'editStepIndex') > initialStepIndex;
   });
 
   /**
@@ -542,19 +548,19 @@ export default class DatasetCompliance extends Component {
 
     // Set the current step to first edit step if compliance policy is new / doesn't exist
     if (get(this, 'isNewComplianceInfo')) {
-      this.updateStep(0);
+      // this.updateStep(0);
     }
   }
 
   didInsertElement(): void {
     get(this, 'complianceAvailabilityTask').perform();
-    get(this, 'columnFieldsToCompliancePolicyTask').perform();
-    get(this, 'foldChangeSetTask').perform();
+    // get(this, 'columnFieldsToCompliancePolicyTask').perform();
+    // get(this, 'foldChangeSetTask').perform();
   }
 
   didUpdateAttrs(): void {
-    get(this, 'columnFieldsToCompliancePolicyTask').perform();
-    get(this, 'foldChangeSetTask').perform();
+    // get(this, 'columnFieldsToCompliancePolicyTask').perform();
+    // get(this, 'foldChangeSetTask').perform();
   }
 
   /**
@@ -731,8 +737,8 @@ export default class DatasetCompliance extends Component {
         policyModificationTime: modifiedTime
       }
     );
-
-    set(this, 'columnIdFieldsToCurrentPrivacyPolicy', columnIdFieldsToCurrentPrivacyPolicy);
+    console.log('column id fields');
+    console.log(set(this, 'columnIdFieldsToCurrentPrivacyPolicy', columnIdFieldsToCurrentPrivacyPolicy));
   }).enqueue();
 
   /**
@@ -1109,6 +1115,19 @@ export default class DatasetCompliance extends Component {
   updateStep(this: DatasetCompliance, step: number): void {
     set(this, 'editStepIndex', step);
     get(this, 'updateEditStepTask').perform();
+  }
+
+  /**
+   * Toggles the editing mode on and off, triggered by user action on the edit button, cancel button, or
+   * the successful save response from the api
+   * @param shouldEdit - whether or not we are entering or exiting the edit state
+   * @param editTarget - the set type of policy we are planning on editing (or leaving the edit state of)
+   */
+  toggleEditMode(shouldEdit: boolean, editTarget: ComplianceEdit): void {
+    setProperties(this, {
+      editTarget,
+      isEditing: shouldEdit
+    });
   }
 
   actions: IDatasetComplianceActions = {

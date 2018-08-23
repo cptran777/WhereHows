@@ -5,17 +5,7 @@
 
     <div id="compliance" class="tab-body">
       {{#if _hasBadData}}
-        <div class="alert alert-danger post-action-notification" role="alert">
-          <p>
-            Oops! We have discovered some issues with this Dataset's fields that
-            may put any updates in an invalid state. <br>
-            Unfortunately updates are <strong>disabled</strong> at this time. <br>
-            Please shoot us an email at
-            <a href="mailto:ask_metadata@linkedin.com">ask_metadata@linkedin.com</a>
-            and we will get on this asap! <br>
-            Our apologies.
-          </p>
-        </div>
+        {{partial "datasets/dataset-compliance/bad-data"}}
       {{else}}
         <section class="action-bar">
           {{#if isEditing}}
@@ -223,7 +213,23 @@
       {{else}}
 
         {{#if (or isReadOnly isInitialEditStep)}}
-          {{partial "datasets/dataset-compliance/dataset-compliance-entities"}}
+          {{!-- {{partial "datasets/dataset-compliance/dataset-compliance-entities"}} --}}
+          {{datasets/compliance/schema-entities
+            datasetName=datasetName
+            schemaless=schemaless
+            complianceSuggestion=complianceSuggestion
+            isEditing=isEditing
+            platform=platform
+            searchTerm=searchTerm
+            complianceInfo=complianceInfo
+            isNewComplianceInfo=isNewComplianceInfo
+            complianceDataTypes=complianceDataTypes
+            nextStep=(action "nextStep")
+            schemaFieldNamesMappedToDataTypes=schemaFieldNamesMappedToDataTypes
+            suggestionConfidenceThreshold=suggestionConfidenceThreshold
+            notifyOnChangeSetSuggestions=notifyOnChangeSetSuggestions
+            notifyOnComplianceSuggestionFeedback=notifyOnComplianceSuggestionFeedback
+            notifyOnChangeSetRequiresReview=notifyOnChangeSetRequiresReview}}
         {{/if}}
 
       {{/if}}
