@@ -1,0 +1,9 @@
+{{#if getFabricsTask.isRunning}}
+  <PendulumEllipsisAnimation />
+{{else}}
+  {{yield
+    (hash
+      fabrics=fabrics
+      urn=urn)
+  }}
+{{/if}}

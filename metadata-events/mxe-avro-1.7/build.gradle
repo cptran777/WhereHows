@@ -1,0 +1,34 @@
+configurations {
+  avsc
+}
+
+apply plugin: 'com.commercehub.gradle.plugin.avro'
+apply plugin: 'java'
+
+dependencies {
+  compile externalDependency.avro_1_7
+  compile externalDependency.avroCompiler_1_7
+
+  avsc project(':metadata-events:mxe-schemas')
+}
+
+task avroCodeGen(type: com.commercehub.gradle.plugin.avro.GenerateAvroJavaTask, dependsOn: configurations.avsc) {
+  source("$rootDir/metadata-events/mxe-schemas/src/renamed/avro")
+  outputDir = file("src/generated/java")
+}
+
+compileJava.source(avroCodeGen.outputs)
+build.dependsOn avroCodeGen
+
+clean {
+  project.delete('src/generated')
+}
+
+avroCodeGen.dependsOn(':metadata-events:mxe-schemas:renameNamespace')
+
+// Exclude classes from avro-schemas
+jar {
+  dependsOn classes
+  from sourceSets.main.output
+  exclude('com/linkedin/events/**')
+}
